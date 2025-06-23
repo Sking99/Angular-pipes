@@ -5,11 +5,14 @@
       <h2>Student Management</h2>
     </div>
     <div class="admin-header-filter">
-      <select name="gender" class="filter-select" [(ngModel)]="selectedGender">
+      <select name="gender" class="filter-select" [value]="selectedGender" (change)="OnFilterChanged($event)">
         <option value="All">All</option>
         <option value="Male">Male</option>
         <option value="Female">Female</option>
       </select>
+    </div>
+    <div>
+        Total Students: {{ totalStudents | async}}
     </div>
   </div>
   <!--HEADER ENDS-->
@@ -82,7 +85,7 @@
 
       <!--DISPLAY ALL STUDENTS FROM STUDENTS ARRAY-->
 
-      @for(std of students | filter : this.selectedGender; track std.id) {
+      @for(std of students; track std.id) {
       <tr>
         <td>{{ std.id }}</td>
 
