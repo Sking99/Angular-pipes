@@ -1,10 +1,12 @@
-import { Component, ElementRef, inject, ViewChild } from '@angular/core';
+import { Component, ComponentRef, ElementRef, inject, signal, viewChild, ViewChild, ViewContainerRef } from '@angular/core';
 import { Student } from '../../Models/student';
 import { StudentService } from '../../Services/student-service';
 import { AsyncPipe, CurrencyPipe, DatePipe, NgFor, NgIf, PercentPipe } from '@angular/common';
 import { PercentagePipePipe } from '../../Pipes/percentage-pipe-pipe';
 import { FormsModule } from '@angular/forms';
 import { FilterPipe } from '../../Pipes/filter-pipe';
+import { ConfirmDelete } from '../confirm-delete/confirm-delete';
+import { single } from 'rxjs';
 
 @Component({
   selector: 'app-admin-component',
@@ -15,9 +17,37 @@ import { FilterPipe } from '../../Pipes/filter-pipe';
 export class AdminComponent {
   studentService: StudentService = inject(StudentService);
 
+  vcr = viewChild('container', { read: ViewContainerRef });
+  #componentRef?: ComponentRef<ConfirmDelete>;
+
+  createComponent(){
+    this.vcr()?.clear();
+    this.#componentRef = this.vcr()?.createComponent(ConfirmDelete);
+    this.#componentRef?.setInput('userToDelete', this.userToDelete());
+    this.#componentRef?.instance.OnConfirmation.subscribe((value: boolean) => {
+      if(value) {
+      const index = this.studentService.students.indexOf(this.userToDelete() as Student);
+      this.studentService.students.splice(index, 1);
+      this.students = this.studentService.filterStudents(this.selectedGender);
+      this.userToDelete.set(null);
+      this.vcr()?.clear();
+    }
+    else {
+      this.userToDelete.set(null);
+      this.vcr()?.clear();
+    }
+    })
+  }
+
+  destroyComponent(){
+
+  }
+
   isEditing: boolean = false;
   isInserting: boolean = false;
   stdIdToEdit!: number;
+  userToDelete = signal<Student | null>(null);
+  showDeletePopup = signal(false);
 
   students!: Student[];
   totalMarks!: number;
@@ -93,5 +123,24 @@ export class AdminComponent {
 
       this.isEditing = false;
       this.students = this.studentService.filterStudents(this.selectedGender);
+  }
+
+  onDeleteClicked(student: Student){
+    this.userToDelete.set(student);
+    this.createComponent();
+  }
+
+  showDeleteModal(value: boolean) {
+    if(value) {
+      const index = this.studentService.students.indexOf(this.userToDelete() as Student);
+      this.studentService.students.splice(index, 1);
+      this.students = this.studentService.filterStudents(this.selectedGender);
+      this.userToDelete.set(null);
+      this.showDeletePopup.set(!value);
+    }
+    else {
+      this.userToDelete.set(null);
+      this.showDeletePopup.set(value);
+    }
   }
 }

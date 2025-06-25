@@ -152,7 +152,7 @@
           </button>
         </td>
         <td *ngIf="!isEditing || std.id !== stdIdToEdit">
-          <button class="delete-button">
+          <button class="delete-button" (click)="onDeleteClicked(std)">
             <i class="fa fa-trash" aria-hidden="true"></i>
           </button>
         </td>
@@ -177,3 +177,5 @@
   </div>
   <!--PAGE FOOTER ENDS-->
 </div>
+<!-- <app-confirm-delete *ngIf="showDeletePopup()" [userToDelete]="userToDelete()" (OnConfirmation)="showDeleteModal($event)"></app-confirm-delete> -->
+ <ng-container #container></ng-container>
